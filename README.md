@@ -79,3 +79,83 @@ The main HTTP methods are:
 
 All the methods are defined in the `@app.get()`, `@app.post()`, `@app.put()` and `@app.delete()` functions.
 With that we have the basic structure of a FastAPI app, to build a CRUD using REST API.
+
+### Get Method
+
+GET is used to retrieve data from a server. The GET method requests a representation of the specified resource. Requests using GET should only retrieve data.
+
+```python
+@app.get("/movies/")
+async def get_movies():
+    return movie_list
+```
+
+#### Route Parameters
+
+Route parameters are defined in the path of the endpoint. For example, in the following endpoint, the route parameter is `movie_id`:
+
+
+```python
+@app.get('/movies/{movie_id}', tags=['movies'])
+def get_movie(movie_id: int):
+    for movie in movie_list:
+        if movie['id'] == movie_id:
+            return movie
+    return []
+```
+
+#### Query Parameters
+
+Query parameters are defined in the URL of the endpoint. Is defined as a key-value pair in the URL. For example, in the following endpoint, the query parameter is `movie_id`:
+
+```python
+@app.get('/movies/', tags=['movies'])
+def get_movies_by_category(category: str, year: str = None):
+    movies = [movie for movie in movie_list if movie['category'] == category]
+
+    if year:
+        movies = [movie for movie in movies if movie['year'] == year]
+
+    return movies
+```
+
+### Post Method
+
+POST is used to send data to a server to create/update a resource. The POST method is used to submit an entity to the specified resource, often causing a change in state or side effects on the server.
+
+```python
+@app.post('/movies', tags=['movies'])
+def create_movie(id: int = Body(), title: str = Body(), overview: str = Body(), year: str = Body(), rating: float = Body(), category: str = Body()):
+    movie = {
+        "id": id,
+        "title": title,
+        "overview": overview,
+        "year": year,
+        "rating": rating,
+        "category": category
+    }
+    movie_list.append(movie)
+    return movie
+```
+
+### Put Method
+
+PUT is used to send data to a server to create/update a resource. The PUT method replaces all current representations of the target resource with the request payload.
+
+```python
+@app.put('/movies/{movie_id}', tags=['movies'])
+def update_movie(movie_id: int, title: str = Body(), overview: str = Body(), year: str = Body(), rating: float = Body(), category: str = Body()):
+    for movie in movie_list:
+        if movie['id'] == movie_id:
+            movie['title'] = title
+            movie['overview'] = overview
+            movie['year'] = year
+            movie['rating'] = rating
+            movie['category'] = category
+            return movie
+    return []
+```
+
+## Schemas
+
+Pydantic is a data validation and settings management library using Python type hinting. It is used to define the data models for the API.
