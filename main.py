@@ -1,12 +1,26 @@
-from fastapi import FastAPI, Body, Path, Query, status, HTTPException
+from fastapi import FastAPI, Body, Path, Query, status, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List
+from jwt_manager import create_token, validate_token
+from fastapi.security import HTTPBearer
 
 app = FastAPI()
 app.title = "Mi aplicación con FastAPI"
 app.version = "0.0.1"
 app.description = "FastAPI documentation"
+
+
+class JWTBearer(HTTPBearer):
+    async def __call__(self, request: Request):
+        auth = await super().__call__(request)
+        data = validate_token(auth.credentials)
+        if data['username'] != "admin":
+            raise HTTPException(status_code=403, detail="Credenciales son invalidas")
+
+class User(BaseModel):
+    username: str
+    password: str
 
 
 class Movie(BaseModel):
@@ -49,6 +63,14 @@ def message():
         "hello": "world"
     }
 
+@app.post('/login', tags=['login'], status_code=status.HTTP_200_OK)
+def login(user: User):
+    if user.username == 'admin' and user.password == 'admin':
+        return {
+            'token': create_token(user.dict())
+        }
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
 
 @app.get('/html', tags=["home"])
 def return_html():
@@ -59,7 +81,7 @@ def return_html():
     )
 
 
-@app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=status.HTTP_200_OK)
+@app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
 def get_movies():
     return movie_list
 

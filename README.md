@@ -1,4 +1,4 @@
-# FastAPI :ray:
+# FastAPI :zap: :rocket:
 
 ## What is FastAPI?
 
@@ -48,6 +48,8 @@ Who created it?
     - `uvicorn main:app --reload --port 5000 --host 0.0.0.0`
 
 
+[Ref Api Movies](https://github.com/cristian-rincon/api-movies)
+
 ## Automatic documentation with Swagger UI
 
 FastAPI automatically generates an interactive API documentation (provided by Swagger UI) for your API.
@@ -72,15 +74,15 @@ app.description = "Esta es una aplicación de ejemplo para aprender a usar FastA
 The protocol HTTP defines a set of methods to indicate the desired action to be performed for a given resource. Although they can also be nouns, these request methods are sometimes referred to as HTTP verbs. 
 
 The main HTTP methods are:
-- GET: The GET method requests a representation of the specified resource. Requests using GET should only retrieve data.
-- POST: The POST method is used to submit an entity to the specified resource, often causing a change in state or side effects on the server.
-- PUT: The PUT method replaces all current representations of the target resource with the request payload.
-- DELETE: The DELETE method deletes the specified resource.
+- **`GET`**: The GET method requests a representation of the specified resource. Requests using GET should only retrieve data.
+- **`POST`**: The POST method is used to submit an entity to the specified resource, often causing a change in state or side effects on the server.
+- **`PUT`**: The PUT method replaces all current representations of the target resource with the request payload.
+- **`DELETE`**: The DELETE method deletes the specified resource.
 
 All the methods are defined in the `@app.get()`, `@app.post()`, `@app.put()` and `@app.delete()` functions.
 With that we have the basic structure of a FastAPI app, to build a CRUD using REST API.
 
-### Get Method
+### `Get` Method
 
 GET is used to retrieve data from a server. The GET method requests a representation of the specified resource. Requests using GET should only retrieve data.
 
@@ -119,7 +121,7 @@ def get_movies_by_category(category: str, year: str = None):
     return movies
 ```
 
-### Post Method
+### `Post` Method
 
 POST is used to send data to a server to create/update a resource. The POST method is used to submit an entity to the specified resource, often causing a change in state or side effects on the server.
 
@@ -138,7 +140,7 @@ def create_movie(id: int = Body(), title: str = Body(), overview: str = Body(), 
     return movie
 ```
 
-### Put Method
+### `Put` Method
 
 PUT is used to send data to a server to create/update a resource. The PUT method replaces all current representations of the target resource with the request payload.
 
@@ -152,6 +154,20 @@ def update_movie(movie_id: int, title: str = Body(), overview: str = Body(), yea
             movie['year'] = year
             movie['rating'] = rating
             movie['category'] = category
+            return movie
+    return []
+```
+
+### `Delete` Method
+
+DELETE is used to delete data from a server. The DELETE method deletes the specified resource.
+
+```python
+@app.delete('/movies/{movie_id}', tags=['movies'])
+def delete_movie(movie_id: int):
+    for movie in movie_list:
+        if movie['id'] == movie_id:
+            movie_list.remove(movie)
             return movie
     return []
 ```
@@ -350,4 +366,94 @@ def get_movie(movie_id: int = Path(..., title="The ID of the movie to get", ge=1
         if movie['id'] == movie_id:
             return movie
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movie with id {movie_id} not found")
+```
+
+## Authentication
+
+The authentication is a process to verify the identity of a user. There are many ways to authenticate a user, like username and password, token, etc.
+For this example, we will use **PyJWT** (Python JSON Web Token) to generate and validate the token.
+PyJWT is a Python library that is used to encode and decode JWT (JSON Web Token) tokens. 
+
+:bulb: A JWT token is a security object that is used to authenticate users in web and mobile applications. JWT tokens are issued by an authentication server and then sent to the client, which uses them to prove their identity when accessing protected resources on the server.
+
+### Authentication Flow
+
+- **Authentication Flow**
+    
+    Now we will start with the authentication module but first I want to explain to you a little bit about what we will be doing in our application and how the authentication and authorization process will be.
+
+- **Login Route**
+    
+    What we will get as a result at the end of this module is the protection of certain routes of our application for which only access can be made by the user's login. For this we will create a route that uses the POST method where the data such as email and password will be requested.
+
+- **Token creation and sending**
+    
+    After the user enters their correct login data, they will receive a token that will serve them to send it when making a request to a protected route.
+
+- **Token validation**
+    
+    When our API receives the user's request, it will check that it has sent the token and validate if it is correct and belongs to it. Finally, access will be given to the route that is being requested.
+
+We will use the **`pyjwt`** library to generate and validate the token.
+
+
+### Genenerate Token with `pyjwt` :lock:
+
+Iniciamos instalando a biblioteca **`pyjwt`**.
+
+- `pip install pyjwt`
+
+- `pip install dotenv`
+
+
+:book: [JWT](https://jwt.io/)
+:book: [PyJWT](https://pyjwt.readthedocs.io/en/stable/)
+:book: [Security Encryption Key Generator](https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx) | Genera una llave aleatoria y segura en el tamaño y con la encriptación deseada.
+
+:book: [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/)
+
+```python
+from jwt import encode, decode
+
+def create_token(data: dict):
+    token : str = encode(payload=data, key="my_secret_key", algorithm="HS256")
+    return token
+
+def validate_token(token: str) -> dict:
+    data : dict = decode(token, key="my_secret_key", algorithms=["HS256"])
+    return data
+```
+
+- **main.py**
+
+To define the authentication, we can use the **`HTTPBearer`** class from FastAPI. Here, we can define a class for example **`JTWBearer`** where we will validate the token.
+
+The **`__call__`** method is called when the class is instantiated. In this method, we will validate the token and return the data.
+
+To protect the route, we will use the **`JWTBearer`** class that we created, and the **`dependencies`** parameter in the function decorator to pass the class `dependencies=[Depends(JWTBearer())]`
+
+The token will be sent in the header of the request, in the **`Authorization`** field.
+To obtain the token, we will **login** and get the token in the response.
+
+```python
+class JWTBearer(HTTPBearer):
+    async def __call__(self, request: Request):
+        auth = await super().__call__(request)
+        data = validate_token(auth.credentials)
+        if data['username'] != "admin":
+            raise HTTPException(status_code=403, detail="Credenciales son invalidas")
+
+# Authentication
+@app.post('/login', tags=['login'], status_code=status.HTTP_200_OK)
+def login(user: User):
+    if user.username == 'admin' and user.password == 'admin':
+        return {
+            'token': create_token(user.dict())
+        }
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+# Use the JWTBearer class to protect the route
+@app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
+def get_movies():
+    return movie_list
 ```
