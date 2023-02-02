@@ -1,16 +1,20 @@
 # FastAPI :zap: :rocket:
 
-## What is FastAPI?
+## What is FastAPI? :wrench:
 
 FastAPI is a modern, fast (high-performance), web framework for building APIs with Python 3.6+ based on standard Python type hints.
 
 The key features are:
-- Fast
-- Less errors
-- Intuitive
-- Easy to learn
-- Standard based
-- Robust
+- Fast: Very high performance, on par with NodeJS and Go (thanks to Starlette and Pydantic). One of the fastest Python frameworks available.
+- Fast to code: Increase the speed to develop features by about 200% to 300%. *
+- Fewer bugs: Reduce about 40% of human (developer) induced errors. *
+- Intuitive: Great editor support. Completion everywhere. Less time debugging.
+- Easy: Designed to be easy to use and learn. Less time reading docs.
+- Short: Minimize code duplication. Multiple features from each parameter declaration. Fewer bugs.
+- Robust: Get production-ready code. With automatic interactive documentation.
+- Standards-based: Based on (and fully compatible with) the open standards for APIs: OpenAPI (previously known as Swagger) and JSON Schema.
+
+:book: [Fast API](https://fastapi.tiangolo.com/)
 
 Libraries used:
 - Starlette: Fast ASGI framework/toolkit, on top of which FastAPI is built. Async framework for building APIs.
@@ -50,7 +54,8 @@ Who created it?
 
 [Ref Api Movies](https://github.com/cristian-rincon/api-movies)
 
-## Automatic documentation with Swagger UI
+
+## Automatic documentation with Swagger UI :newspaper:
 
 FastAPI automatically generates an interactive API documentation (provided by Swagger UI) for your API.
 
@@ -368,7 +373,7 @@ def get_movie(movie_id: int = Path(..., title="The ID of the movie to get", ge=1
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movie with id {movie_id} not found")
 ```
 
-## Authentication
+## Authentication :closed_lock_with_key:
 
 The authentication is a process to verify the identity of a user. There are many ways to authenticate a user, like username and password, token, etc.
 For this example, we will use **PyJWT** (Python JSON Web Token) to generate and validate the token.
@@ -406,9 +411,9 @@ Iniciamos instalando a biblioteca **`pyjwt`**.
 - `pip install dotenv`
 
 
-:book: [JWT](https://jwt.io/)
-:book: [PyJWT](https://pyjwt.readthedocs.io/en/stable/)
-:book: [Security Encryption Key Generator](https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx) | Genera una llave aleatoria y segura en el tamaño y con la encriptación deseada.
+- :book: [JWT](https://jwt.io/)
+- :book: [PyJWT](https://pyjwt.readthedocs.io/en/stable/)
+- :book: [Security Encryption Key Generator](https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx) | Genera una llave aleatoria y segura en el tamaño y con la encriptación deseada.
 
 :book: [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/)
 
